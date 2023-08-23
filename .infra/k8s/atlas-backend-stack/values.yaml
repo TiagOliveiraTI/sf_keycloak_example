@@ -1,0 +1,21 @@
+global:
+  namespace: atlas
+  secretName: atlas-secret
+  atlasImageName: registry.digitalocean.com/charlie-container-registry/atlas
+  atlasImageVersion: 22-08-2023-16-31-34
+  imagePullPolicy: Always
+atlas:
+  deployName: atlasapp
+  containerPort: ''
+  requestsCPU: 200m
+  requestsMemory: 200Mi
+  limitsCPU: 400m
+  limitsMemory: 400Mi
+  serviceName: atlasapp-services
+  protocol: ''
+  servicePort: ''
+  serviceType: ''
+  hpaName: atlas-app-hpa
+  minReplicas: '1'
+  maxReplicas: '2'
+  averageUtilization: '70'

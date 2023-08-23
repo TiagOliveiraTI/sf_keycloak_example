@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: atlas-ingress
+  namespace: atlas
+  annotations:
+    cert-manager.io/issuer: letsencrypt-dev
+    nginx.ingress.kubernetes.io/proxy-body-size: 20m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+status:
+  loadBalancer:
+    ingress:
+      - ip: 24.199.66.218
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: atlas.cluster.staycharlie.com.br # devo criar um host na digital ocean
+      http:
+        paths:
+          - pathType: Prefix
+            backend:
+              service:
+                name: atlasapp-services
+                port:
+                  number: 80
+            path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+  tls:
+    - hosts:
+      - atlas.cluster.staycharlie.com.br # devo criar um host na digital ocean
+      secretName: tls-secret-dev

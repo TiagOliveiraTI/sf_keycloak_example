@@ -1,0 +1,53 @@
+version: '3.5'
+
+services:
+  app:
+    container_name: sf_keycloak_exam-ple
+    build:
+      context: .infra/develop
+      dockerfile: dev.dockerfile
+    env_file:
+      - ./app/.env
+    environment:
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ./app:/var/www/app
+      - ./.infra/develop/app:/usr/local/etc/php/conf.d
+    networks:
+      - sf_keycloak_exam-ple-api
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "4006:3306"
+    env_file:
+      - ./app/.env
+    volumes:
+      - db-data:/sql
+      - db-dump:/var/lib/mysql
+    networks:
+      - sf_keycloak_exam-ple-api
+
+  nginx:
+    build:
+      context: .infra/develop/nginx
+    volumes:
+      - ./app:/var/www/app:delegated
+      - .infra/develop/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - .infra/develop/nginx/sites:/etc/nginx/sites-available
+      - .infra/develop/nginx/conf.d/:/etc/nginx/conf.d
+    ports:
+      - '8001:80'
+    networks:
+      - sf_keycloak_exam-ple-api
+    depends_on:
+      - app
+
+volumes:
+  db-data:
+  db-dump:
+
+networks:
+  sf_keycloak_exam-ple-api:

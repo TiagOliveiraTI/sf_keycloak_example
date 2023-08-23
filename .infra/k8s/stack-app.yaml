@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: atlasapp
+spec:
+  selector:
+    matchLabels:
+      app: atlasapp
+  template:
+    metadata:
+      labels:
+        app: atlasapp
+    spec:
+      containers:
+      - name: atlasapp
+        image: registry.digitalocean.com/charlie-container-registry/atlas:1.0
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: atlas-env
+        volumeMounts:
+        - name: env-file
+          mountPath: /var/www/html/.env
+          subPath: .env
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      volumes:
+      - name: env-file
+        configMap:
+          name: atlas-env
+          items:
+          - key: .env
+            path: .env
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atlasapp-services
+spec:
+  selector:
+    app: atlasapp
+  ports:
+  - name: nginx
+    protocol: TCP
+    port: 80
+  type: ClusterIP

@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.atlas.deployName }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: {{ .Values.atlas.deployName }}
+{{/*  replicas: {{ default "1" .Values.atlas.initialReplicas }}*/}}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.atlas.deployName }}
+    spec:
+      containers:
+      - name: {{ .Values.atlas.deployName }}
+        image: {{ .Values.global.atlasImageName }}:{{ .Values.global.atlasImageVersion }}
+        ports:
+        - containerPort: {{ default "80" .Values.atlas.containerPort }}
+        imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+        resources:
+          requests:
+            cpu: {{ .Values.atlas.requestsCPU }}
+            memory: {{ .Values.atlas.requestsMemory }}
+          limits:
+            cpu: {{ .Values.atlas.limitsCPU }}
+            memory: {{ .Values.atlas.limitsMemory }}
+        livenessProbe:
+          httpGet:
+            path: /healthCheck
+            port: 80
+          initialDelaySeconds: 100
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+          timeoutSeconds: 10
+        lifecycle:
+            postStart:
+              exec:
+                command: [
+                  "/bin/sh",
+                  "-c", 
+                  "./bin/console d:m:m --no-interaction && bin/console c:c && chown -R www-data:www-data var/cache/prod"
+                ]
+        envFrom:
+        - secretRef:
+            name: {{ .Values.global.secretName }}
+        volumeMounts:
+        {{- include "volumeMount" . | indent 8 }}
+        {{- include "jwtKeyPairsVolumeMount" . | indent 8 }}
+      volumes:
+      {{- include "volumes" . | indent 6 }}
+      {{- include "jwtKeyPairsVolumes" . | indent 6 }}
